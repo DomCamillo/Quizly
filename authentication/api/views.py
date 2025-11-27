@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .serializers import RegistrationSerializer, CostumeTokenObtainPairSerializer
+from .serializers import RegistrationSerializer #CostumeTokenObtainPairSerializer
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -28,6 +28,62 @@ class RegistrationView(APIView):
 
 
 
+class LogoutView(APIView):
+    pass
+
+class LoginTokenView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        refresh = response.data.get('refresh')
+        access = response.data.get('access')
+
+        response.set_cookie(
+            key="access_token",
+            httponly=True,
+            secure=True,
+            value=str(access),
+            samesite='Lax'
+        ),
+        response.set_cookie(
+            key="refresh_token",
+            httponly=True,
+            secure=True,
+            value=str(refresh),
+            samesite='Lax'
+        )
+
+        response.data={"login": "successfully"}
+        return response
+
+
+
+class RefreshTokenView(TokenRefreshView):
+ def post(self, request, *args, **kwargs):
+     refresh_token =request.COOKIES.get('refresh_token')
+
+     if refresh_token is None:
+         return Response({"detial": "Refresh token not found"}, status=400)
+
+
+
+     request.data['refresh'] = refresh_token
+     serializer = self.get_serializer(data={'refresh': refresh_token})
+
+     try: serializer.is_valid(raise_exception=True)
+     except:
+         return Response({"detail": "Invalid refresh token "}, status=401)
+
+     access_token = serializer.validated_data.get("access")
+
+     response = Response({"message": "access token refreshed successfully"})
+     response.set_cookie(
+            key="access_token",
+            httponly=True,
+            value=access_token,
+            secure=True,
+            samesite='Lax'
+        ),
+     return response
 
 
 class JWTTEstView(APIView):
@@ -38,96 +94,49 @@ class JWTTEstView(APIView):
 
 
 
-class CookieALoginTokenView(TokenObtainPairView):
-    """
-    An endpoint for obtaining JWT tokens and storing them in HttpOnly cookies.
-    works with email and password isntead of username
-    """
-    serializer_class = CostumeTokenObtainPairSerializer
+# class CookieALoginTokenView(TokenObtainPairView):
+#     """
+#     An endpoint for obtaining JWT tokens and storing them in HttpOnly cookies.
+#     works with email and password isntead of username
+#     """
+#     serializer_class = CostumeTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        response = Response({"message": "Login Successfull"})
-
-        refresh = serializer.validated_data['refresh']
-        access = serializer.validated_data['access']
-
-        response.set_cookie( #Speichere diesen Token in einem HttpOnly-Cookie namens access_token
-            key="acces_token",
-            httponly=True,
-            value=str(access),
-            secure=True,
-            samesite='Lax'
-        ),
-        response.set_cookie(
-            key="refresh_token",
-            httponly=True,
-            value=str(refresh),
-            secure=True,
-            samesite='Lax'
-        )
-        #response.set_cookie() ist eine Django-Funktion, mit der du dem Browser Cookies mitschickst.
-        #Diese Cookies werden danach automatisch vom Browser gespeichert und bei jedem zukünftigen Request automatisch wieder mitgeschickt.
-
-        response.data={"login": "successfully"}
-        return response
-
-
-
-
-
-
-class CookieTokenRefreshView(TokenRefreshView):
- def post(self, request, *args, **kwargs):
-     refresh_token =request.COOKIES.get('refresh_token')
-
-     if refresh_token is None:
-         return Response({"detial": "Refresh token not found"}, status=400)
-
-     serializer = self.get_serializer(data={'refresh': refresh_token})
-
-     try: serializer.is_valid(raise_exception=True)
-     except:
-         return Response({"detail": "Invalid refresh token "}, status=401)
-
-     acces_token = serializer.validated_data.get("access")
-
-     response = Response({"message": "access token refreshed successfully"})
-     response.set_cookie(
-            key="acces_token",
-            httponly=True,
-            value=acces_token,
-            secure=True,
-            samesite='Lax'
-        ),
-     return response
-
-
-
-
-
- """the same view as above exept without using the CostumeTokenObtainPairSerializer, it uses username and
- pssword instead of email and password"""
-#  class CookieTokenView(TokenObtainPairView):
 #     def post(self, request, *args, **kwargs):
-#         response = super().post(request, *args, **kwargs)
-#         refresh = response.data.get('refresh')
-#         access = response.data.get('access')
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
 
-#         response.set_cookie(
+#         response = Response({"message": "Login Successfull"})
+
+#         refresh = serializer.validated_data['refresh']
+#         access = serializer.validated_data['access']
+
+#         response.set_cookie( #Speichere diesen Token in einem HttpOnly-Cookie namens access_token
 #             key="acces_token",
 #             httponly=True,
+#             value=str(access),
 #             secure=True,
 #             samesite='Lax'
 #         ),
 #         response.set_cookie(
 #             key="refresh_token",
 #             httponly=True,
+#             value=str(refresh),
 #             secure=True,
 #             samesite='Lax'
 #         )
+#         #response.set_cookie() ist eine Django-Funktion, mit der du dem Browser Cookies mitschickst.
+#         #Diese Cookies werden danach automatisch vom Browser gespeichert und bei jedem zukünftigen Request automatisch wieder mitgeschickt.
 
 #         response.data={"login": "successfully"}
 #         return response
+
+
+
+
+
+
+
+
+
+
+
