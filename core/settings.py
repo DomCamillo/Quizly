@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'auth',
+    'authentication',
     'quizzes',
     'video_processing',
     'rest_framework_simplejwt',
