@@ -29,8 +29,12 @@ class RegistrationView(APIView):
 
 
 class LogoutView(APIView):
-    pass
-
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+       response = Response()
+       response.delete_cookie('access_token')
+       response.delete_cookie('refresh_token')
+       response.data = {'message' : 'Sucessfully logged out'}
 class LoginTokenView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
