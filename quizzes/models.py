@@ -11,7 +11,7 @@ class Quiz(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     video_url = models.URLField(max_length=200, blank=True, null=True )
     status = models.CharField(max_length=20, choices=[('processing','Processing'),
-                                                      ('completed', 'Completed')
+                                                      ('completed', 'Completed'),
                                                       ('failed', 'Failed')], default='processing')
     transcript = models.TextField(blank=True, null=True)
 
