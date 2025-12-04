@@ -5,91 +5,100 @@ from .serializers import QuizSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from .serializers import QuizSerializer, CreateQuizSerializer, QuizUpdateSerializer
+from video_processing.services import VideoProcessingService
 
 
 class QuizListView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        quizzes = Quiz.objects.all()
+        # Nur Quizzes des eingeloggten Users
+        quizzes = Quiz.objects.filter(user=request.user)
         serializer = QuizSerializer(quizzes, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
-        serializer = QuizSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, 400)
-        serializer.save()
-        return Response(serializer.data, 201)
 
-
-
-class CreateQuizView(APIView):
+class QuizCreateFromVideoView(APIView):
+    """Erstellt ein Quiz aus einer YouTube URL"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # 1. Validiere die URL
-        serializer = QuizSerializer(data=request.data)
+        serializer = CreateQuizSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        video_url = serializer.validated_data['url']
+        quiz = Quiz.objects.create(
+            user=request.user,
+            video_url=video_url,
+            title=f"Quiz from {video_url[:50]}...",
+            status='processing'
+        )
+        try:
+            VideoProcessingService.process_video_and_create_quiz(quiz.id)
+        except Exception as e:
+            quiz.status = 'failed'
+            quiz.save()
+            return Response(
+                {'error': f'Processing failed: {str(e)}'},
+                status=500
+            )
+        return Response(
+            QuizSerializer(quiz).data,
+            status=201
+        )
+
+
+class QuizDetailView(APIView):
+    """Get single quiz for delete or update"""
+    permission_classes = [IsAuthenticated]
+
+    def get_quiz(self, pk, user):
+        try:
+            quiz = Quiz.objects.get(pk=pk)
+            if quiz.user != user:
+                return None, Response(
+                    {'error': 'Access denied - Quiz does not belong to you'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            return quiz, None
+
+        except Quiz.DoesNotExist:
+            return None, Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        """GET: Einzelnes Quiz abrufen"""
+        quiz, error_response = self.get_quiz(pk, request.user)
+        if error_response:
+            return error_response
+
+        serializer = QuizSerializer(quiz)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        """PATCH: Quiz teilweise aktualisieren"""
+        quiz, error_response = self.get_quiz(pk, request.user)
+        if error_response:
+            return error_response
+        serializer = QuizUpdateSerializer(quiz, data=request.data, partial=True)
+
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        youtube_url = serializer.validated_data['url']
-
-        # 2. Erstelle Quiz-Objekt
-        quiz = Quiz.objects.create(
-            user=request.user,
-            title=f"Test Quiz from {youtube_url[:30]}...",  # Dummy-Titel
-            description="This is a test quiz generated from YouTube video",
-            video_url=youtube_url,
-            status='processing'  # Markiere als "in Bearbeitung"
+        serializer.save()
+        return Response(
+            QuizSerializer(quiz).data,
+            status=status.HTTP_200_OK
         )
 
-        # 3. TODO: Hier kommt später die Video-Verarbeitung
-        # - YouTube Download mit yt_dlp
-        # - Whisper Transkription
-        # - Gemini Quiz-Generierung
+    def delete(self, request, pk):
+        """DELETE: Quiz permanent löschen"""
+        quiz, error_response = self.get_quiz(pk, request.user)
+        if error_response:
+            return error_response
+        quiz.delete()
 
-        # 4. MOCK-DATEN zum Testen (später entfernen!)
-        # Erstelle Test-Fragen
-        mock_questions_data = [
-            {
-                "question_title": "Was ist die Hauptaussage des Videos?",
-                "option_a": "Python ist die beste Programmiersprache",
-                "option_b": "JavaScript ist schneller als Python",
-                "option_c": "Django ist ein Web-Framework",
-                "option_d": "Alle Antworten sind richtig",
-                "correct_answer": "C",
-                "order": 1
-            },
-            {
-                "question_title": "Welche Technologie wurde im Video erwähnt?",
-                "option_a": "React",
-                "option_b": "Vue.js",
-                "option_c": "Angular",
-                "option_d": "Django REST Framework",
-                "correct_answer": "D",
-                "order": 2
-            },
-            {
-                "question_title": "Was ist ein API Endpoint?",
-                "option_a": "Eine Datenbank",
-                "option_b": "Eine URL für API-Anfragen",
-                "option_c": "Ein Frontend-Framework",
-                "option_d": "Eine Programmiersprache",
-                "correct_answer": "B",
-                "order": 3
-            }
-        ]
-
-        # Erstelle Mock-Questions
-        for q_data in mock_questions_data:
-            Question.objects.create(
-                quiz=quiz,
-                **q_data
-            )
-
-        # 5. Setze Status auf "completed"
-        quiz.status = 'completed'
-        quiz.save()
-
-        # 6. Serialize und sende Response
-        response_serializer = QuizSerializer(quiz)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )

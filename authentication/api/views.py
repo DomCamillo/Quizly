@@ -44,14 +44,14 @@ class LoginTokenView(TokenObtainPairView):
         response.set_cookie(
             key="access_token",
             httponly=True,
-            secure=True,
+            secure=False,
             value=str(access),
             samesite='Lax'
         ),
         response.set_cookie(
             key="refresh_token",
             httponly=True,
-            secure=True,
+            secure=False,
             value=str(refresh),
             samesite='Lax'
         )
@@ -84,7 +84,7 @@ class RefreshTokenView(TokenRefreshView):
             key="access_token",
             httponly=True,
             value=access_token,
-            secure=True,
+            secure=False,
             samesite='Lax'
         ),
      return response
