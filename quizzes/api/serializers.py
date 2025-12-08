@@ -19,7 +19,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     def get_answer(self, obj):
         """returns text from correct answer"""
         mapping = {
-            'A': obj.option_a,  # <- Nicht 'Option A', sondern der echte Text!
+            'A': obj.option_a,
             'B': obj.option_b,
             'C': obj.option_c,
             'D': obj.option_d

@@ -2,11 +2,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.auth.models import User
 from .serializers import RegistrationSerializer #CostumeTokenObtainPairSerializer
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
 
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -14,18 +16,13 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
 
-        data = {}
         if serializer.is_valid():
-            saved_account = serializer.save()
-            data = {
-                'username': saved_account.username,
-                'email': saved_account.email,
-                'user_id': saved_account.pk
-            }
-            return Response(data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            serializer.save()
+            return Response(
+            {"detail": "User created successfully!"},
+            status=status.HTTP_201_CREATED
+        )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -35,11 +32,16 @@ class LogoutView(APIView):
        response.delete_cookie('access_token')
        response.delete_cookie('refresh_token')
        response.data = {'message' : 'Sucessfully logged out'}
+       return response
+
+
 class LoginTokenView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        user = User.objects.get(username=request.data.get('username'))
         refresh = response.data.get('refresh')
         access = response.data.get('access')
+
 
         response.set_cookie(
             key="access_token",
@@ -56,7 +58,14 @@ class LoginTokenView(TokenObtainPairView):
             samesite='Lax'
         )
 
-        response.data={"login": "successfully"}
+        response.data = {
+            "detail": "Login successfully!",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            }
+        }
         return response
 
 
@@ -79,7 +88,10 @@ class RefreshTokenView(TokenRefreshView):
 
      access_token = serializer.validated_data.get("access")
 
-     response = Response({"message": "access token refreshed successfully"})
+     response = Response({
+        "detail": "Token refreshed",
+        "access": access_token
+     })
      response.set_cookie(
             key="access_token",
             httponly=True,
@@ -98,41 +110,6 @@ class JWTTEstView(APIView):
 
 
 
-# class CookieALoginTokenView(TokenObtainPairView):
-#     """
-#     An endpoint for obtaining JWT tokens and storing them in HttpOnly cookies.
-#     works with email and password isntead of username
-#     """
-#     serializer_class = CostumeTokenObtainPairSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-
-#         response = Response({"message": "Login Successfull"})
-
-#         refresh = serializer.validated_data['refresh']
-#         access = serializer.validated_data['access']
-
-#         response.set_cookie( #Speichere diesen Token in einem HttpOnly-Cookie namens access_token
-#             key="acces_token",
-#             httponly=True,
-#             value=str(access),
-#             secure=True,
-#             samesite='Lax'
-#         ),
-#         response.set_cookie(
-#             key="refresh_token",
-#             httponly=True,
-#             value=str(refresh),
-#             secure=True,
-#             samesite='Lax'
-#         )
-#         #response.set_cookie() ist eine Django-Funktion, mit der du dem Browser Cookies mitschickst.
-#         #Diese Cookies werden danach automatisch vom Browser gespeichert und bei jedem zukünftigen Request automatisch wieder mitgeschickt.
-
-#         response.data={"login": "successfully"}
-#         return response
 
 
 
