@@ -13,7 +13,6 @@ class QuizListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Nur Quizzes des eingeloggten Users
         quizzes = Quiz.objects.filter(user=request.user)
         serializer = QuizSerializer(quizzes, many=True)
         return Response(serializer.data)

@@ -43,12 +43,12 @@ class YouTubeHandler:
     @staticmethod
     def download_audio(url):
         """
-
+        Download audio from a YouTube video to a temporary directory.
+        Returns: Path to the downloaded audio file.
         """
-        # Erstelle temporäres Verzeichnis (wird automatisch sicher erstellt)
         temp_dir = tempfile.mkdtemp(prefix='youtube_audio_')
 
-        # Eindeutiger Dateiname im temp Verzeichnis
+        """Define output template for audio file"""
         output_template = os.path.join(temp_dir, 'audio')
 
         ydl_opts = {
@@ -65,7 +65,7 @@ class YouTubeHandler:
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
-
+            """Define full path to the audio file"""
             audio_file = f"{output_template}.mp3"
 
             if not os.path.exists(audio_file):

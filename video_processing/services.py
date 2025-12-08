@@ -31,7 +31,7 @@ class VideoProcessingService:
 
             """audio download in temporary directory"""
             audio_file = YouTubeHandler.download_audio(quiz.video_url)
-            temp_dir = os.path.dirname(audio_file)  # Merke dir das temp directory
+            temp_dir = os.path.dirname(audio_file)
 
             """transcribe audio to text"""
             transcription_service = TranscriptionService(model_size='base')

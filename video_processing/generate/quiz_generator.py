@@ -45,7 +45,7 @@ IMPORTANT: Respond ONLY with valid JSON, no additional text.
         except json.JSONDecodeError:
             """if gemini adds extra text try to extract JSON"""
             text = response.text
-            """looking for first [ and last ] to extract JSON array"""
+            """looking for first [ and last ] to extract JSON """
             start = text.find('[')
             end = text.rfind(']') + 1
             if start != -1 and end != 0:

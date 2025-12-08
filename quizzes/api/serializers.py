@@ -5,18 +5,26 @@ from video_processing.services import VideoProcessingService
 
 class QuestionSerializer(serializers.ModelSerializer):
     question_options = serializers.SerializerMethodField()
-    correct_answer = serializers.CharField(source='correct_answer')
+    answer = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
-        fields = ['id', 'question_title', 'question_options', 'answer', 'created_at', 'updated_at','correct_answer']
+        fields = ['id', 'question_title', 'question_options', 'created_at', 'updated_at', 'answer']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_question_options(self, obj):
+        """returns list of options"""
         return [obj.option_a, obj.option_b, obj.option_c, obj.option_d]
 
     def get_answer(self, obj):
-        return f"Option {obj.correct_answer}"
+        """returns text from correct answer"""
+        mapping = {
+            'A': obj.option_a,  # <- Nicht 'Option A', sondern der echte Text!
+            'B': obj.option_b,
+            'C': obj.option_c,
+            'D': obj.option_d
+        }
+        return mapping.get(obj.correct_answer, obj.option_a)
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -25,7 +33,7 @@ class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
         fields = ['id', 'title', 'description', 'created_at', 'updated_at',
-                  'video_url', 'status', 'questions']
+                  'video_url', 'questions']
         read_only_fields = ['id', 'created_at', 'updated_at', 'status']
 
 
