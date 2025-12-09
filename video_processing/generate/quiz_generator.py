@@ -14,7 +14,7 @@ class QuizGenerator:
     def generate_quiz_from_transcript(self, transcript, num_questions=5):
         """
         Generates multiple-choice quiz questions from a transcript
-        Returns: List of dict mit question_data
+        Returns: Dict with title, description, and questions
         """
         prompt = f"""
 Based on the following transcript, generate {num_questions} multiple-choice quiz questions.
@@ -22,16 +22,23 @@ Based on the following transcript, generate {num_questions} multiple-choice quiz
 Transcript:
 {transcript}
 
-Please respond with a JSON array containing exactly {num_questions} questions.
-Each question should have this structure:
+Please respond with a JSON object with this EXACT structure:
 {{
-    "question_title": "The question text",
-    "option_a": "First option",
-    "option_b": "Second option",
-    "option_c": "Third option",
-    "option_d": "Fourth option",
-    "correct_answer": "A" (or B, C, D)
+    "description": "A brief 2-3 sentence description of what this quiz covers",
+    "questions": [
+        {{
+            "question_title": "The question text",
+            "option_a": "First option",
+            "option_b": "Second option",
+            "option_c": "Third option",
+            "option_d": "Fourth option",
+            "correct_answer": "A"
+        }}
+    ]
 }}
+
+Generate exactly {num_questions} questions in the "questions" array.
+The description should summarize the main topics covered in the quiz.
 
 IMPORTANT: Respond ONLY with valid JSON, no additional text.
 """
@@ -46,8 +53,8 @@ IMPORTANT: Respond ONLY with valid JSON, no additional text.
             """if gemini adds extra text try to extract JSON"""
             text = response.text
             """looking for first [ and last ] to extract JSON """
-            start = text.find('[')
-            end = text.rfind(']') + 1
+            start = text.find('{')
+            end = text.rfind('}') + 1
             if start != -1 and end != 0:
                 questions_data = json.loads(text[start:end])
                 return questions_data

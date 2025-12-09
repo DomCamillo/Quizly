@@ -41,13 +41,14 @@ class VideoProcessingService:
 
             """generate quiz questions from transcript"""
             quiz_generator = QuizGenerator()
-            questions_data = quiz_generator.generate_quiz_from_transcript(
-                transcript,
-                num_questions=10
-            )
+            quiz_data = quiz_generator.generate_quiz_from_transcript(transcript,num_questions=10)
+
+            """save description"""
+            quiz.description = quiz_data.get('description', '')
+            quiz.save()
 
             """create question objects from generated data"""
-            for idx, q_data in enumerate(questions_data):
+            for idx, q_data in enumerate(quiz_data['questions']):
                 Question.objects.create(
                     quiz=quiz,
                     question_title=q_data['question_title'],

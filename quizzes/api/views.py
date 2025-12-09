@@ -19,7 +19,7 @@ class QuizListView(APIView):
 
 
 class QuizCreateFromVideoView(APIView):
-    """Erstellt ein Quiz aus einer YouTube URL"""
+    """Create Quiz from Youtube Url"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -67,7 +67,7 @@ class QuizDetailView(APIView):
             return None, Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, pk):
-        """GET: Einzelnes Quiz abrufen"""
+        """GET: Retrieve single quiz"""
         quiz, error_response = self.get_quiz(pk, request.user)
         if error_response:
             return error_response
@@ -76,7 +76,7 @@ class QuizDetailView(APIView):
         return Response(serializer.data)
 
     def patch(self, request, pk):
-        """PATCH: Quiz teilweise aktualisieren"""
+        """PATCH: Quiz partial update"""
         quiz, error_response = self.get_quiz(pk, request.user)
         if error_response:
             return error_response
@@ -92,7 +92,7 @@ class QuizDetailView(APIView):
         )
 
     def delete(self, request, pk):
-        """DELETE: Quiz permanent löschen"""
+        """DELETE: Delete quiz permanently"""
         quiz, error_response = self.get_quiz(pk, request.user)
         if error_response:
             return error_response

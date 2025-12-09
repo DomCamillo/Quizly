@@ -65,14 +65,14 @@ cd quizly
 
 ```bash
 # Create virtual environment
-python3 -m venv venv
+python -m venv env
 
 # Activate virtual environment
 # macOS/Linux:
 source venv/bin/activate
 
 # Windows:
-venv\Scripts\activate
+env\Scripts\activate
 ```
 
 ### 4. Install Dependencies
@@ -82,8 +82,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Configuration
-## Django Settings
+## Configuration of Django Settings
 
 **Add the following to `settings.py`:**
 
@@ -97,12 +96,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
+
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
 
-    # Your apps
+
     'authentication',
     'quizzes',
     ...
@@ -114,7 +113,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Add CORS middleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -149,7 +148,7 @@ SIMPLE_JWT = {
 
 ### 5. CORS Configuration
 ```python
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 ```
 
@@ -182,7 +181,7 @@ GOOGLE_API_KEY=your-google-gemini-api-key
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
-**Generate Django Secret Key:**
+**Generate Django Secret Key if needed:**
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
@@ -193,7 +192,7 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 2. solutions -> Gemini API -> create new API key
 3. Add the key to your `.env` file
 
-## Database Setup
+## Database Setup if needed
 
 ```bash
 # Run migrations
