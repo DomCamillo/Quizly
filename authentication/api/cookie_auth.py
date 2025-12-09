@@ -4,7 +4,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 class CookieJWTAuthentication(JWTAuthentication):
     """
-    Custom JWT Authentication die Token aus Cookies liest
+    Custom JWT Authentication that retrieves the token from cookies.
     """
     def authenticate(self, request):
         access_token = request.COOKIES.get('access_token')

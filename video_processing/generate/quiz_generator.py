@@ -13,7 +13,7 @@ class QuizGenerator:
 
     def generate_quiz_from_transcript(self, transcript, num_questions=5):
         """
-        Generiert Quiz-Fragen aus einem Transkript
+        Generates multiple-choice quiz questions from a transcript
         Returns: List of dict mit question_data
         """
         prompt = f"""

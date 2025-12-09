@@ -14,7 +14,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-   # Load environment variables
+# Load environment variables
 load_dotenv()
 
 from pathlib import Path
@@ -27,15 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s^ulz@=^j5$(cducko$q0*)l0vt(0i@trbk7jk!t_djt*-m-ow'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 
 # Application definition
@@ -187,7 +184,6 @@ ydl_opts = {
 
     "format": "bestaudio/best",
 
- #   "outtmpl": tmp_filename,
 
     "quiet": True,
 
@@ -198,7 +194,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=50),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    'AUTH_COOKIE': 'access_token',  # Cookie-Name für Access Token
+    'AUTH_COOKIE': 'access_token',
     }
 
 import os
@@ -206,4 +202,4 @@ import os
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBFCSR71DLcQSqQ363_8mFIsfC4oA8GgO8')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')

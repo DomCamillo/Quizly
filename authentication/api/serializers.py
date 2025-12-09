@@ -52,7 +52,6 @@ class CostumeTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.fields.pop("username")
 
     def validate(self, attrs):
-        print("hello")
         email = attrs.get("email")
         password = attrs.get("password")
 
