@@ -10,8 +10,8 @@ from video_processing.services import VideoProcessingService
 
 
 class QuizListView(APIView):
+    """view to list all quizzes for the authenticated user"""
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         quizzes = Quiz.objects.filter(user=request.user)
         serializer = QuizSerializer(quizzes, many=True)
@@ -19,7 +19,11 @@ class QuizListView(APIView):
 
 
 class QuizCreateFromVideoView(APIView):
-    """Create Quiz from Youtube Url"""
+    """
+    This view creates a new quiz from a submitted YouTube URL, and then triggers
+    the full video-processing workflow to populate the quiz with generated content.
+    It returns the final quiz data or an error if processing fails
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -50,28 +54,24 @@ class QuizCreateFromVideoView(APIView):
 
 
 class QuizDetailView(APIView):
-    """Get single quiz for delete or update"""
+    """This view provides secure access to a single quiz
+    by ensuring it belongs to the authenticated user when retrieving."""
     permission_classes = [IsAuthenticated]
 
     def get_quiz(self, pk, user):
         try:
             quiz = Quiz.objects.get(pk=pk)
             if quiz.user != user:
-                return None, Response(
-                    {'error': 'Access denied - Quiz does not belong to you'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                return None, Response({'error': 'Access denied - Quiz does not belong to you'},status=status.HTTP_403_FORBIDDEN)
             return quiz, None
 
         except Quiz.DoesNotExist:
             return None, Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, pk):
-        """GET: Retrieve single quiz"""
         quiz, error_response = self.get_quiz(pk, request.user)
         if error_response:
             return error_response
-
         serializer = QuizSerializer(quiz)
         return Response(serializer.data)
 

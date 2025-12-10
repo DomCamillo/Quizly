@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .serializers import RegistrationSerializer #CostumeTokenObtainPairSerializer
+from .serializers import RegistrationSerializer
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
 
 
 class RegistrationView(APIView):
+    """"Simple user registration view"""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -26,6 +27,9 @@ class RegistrationView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    View to handle user logout by deleting JWT cookies.
+    """
     permission_classes = [IsAuthenticated]
     def post(self, request):
        response = Response()
@@ -36,6 +40,10 @@ class LogoutView(APIView):
 
 
 class LoginTokenView(TokenObtainPairView):
+    """
+    Custom Login View that sets JWT tokens in HttpOnly cookies upon successful authentication.
+    sercure=False for development purposes only to use localhost. In production, set secure=True
+    """
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         user = User.objects.get(username=request.data.get('username'))
@@ -71,7 +79,11 @@ class LoginTokenView(TokenObtainPairView):
 
 
 class RefreshTokenView(TokenRefreshView):
- def post(self, request, *args, **kwargs):
+    """
+    Custom Token Refresh View that reads the refresh token from HttpOnly cookies
+    and sets a new access token in HttpOnly cookies.
+    """
+def post(self, request, *args, **kwargs):
      refresh_token =request.COOKIES.get('refresh_token')
 
      if refresh_token is None:
@@ -102,11 +114,7 @@ class RefreshTokenView(TokenRefreshView):
      return response
 
 
-class JWTTEstView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        return Response({"message": "JWT is working!"})
 
 
 

@@ -12,7 +12,12 @@ class VideoProcessingService:
     @staticmethod
     def process_video_and_create_quiz(quiz_id):
         """
-        Main fuction to process video and create quiz
+        This function processes a quizzs video by validating the URL,
+        extracting the title, downloading and transcribing the audio,
+        and generating quiz questions from the transcript.
+        It saves all generated data to the database,
+        handles errors by marking the quiz as failed,
+        and cleans up temporary files afterward.
         """
         from quizzes.models import Quiz, Question
 
@@ -43,7 +48,7 @@ class VideoProcessingService:
             quiz_generator = QuizGenerator()
             quiz_data = quiz_generator.generate_quiz_from_transcript(transcript,num_questions=10)
 
-            """save description"""
+
             quiz.description = quiz_data.get('description', '')
             quiz.save()
 

@@ -4,6 +4,10 @@ from ..models import Quiz, Question
 from video_processing.services import VideoProcessingService
 
 class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Quiz Questions grouping all answer options into a
+    list and mapping the correct answer letter to its full text
+    """
     question_options = serializers.SerializerMethodField()
     answer = serializers.SerializerMethodField()
 
@@ -13,11 +17,9 @@ class QuestionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_question_options(self, obj):
-        """returns list of options"""
         return [obj.option_a, obj.option_b, obj.option_c, obj.option_d]
 
     def get_answer(self, obj):
-        """returns text from correct answer"""
         mapping = {
             'A': obj.option_a,
             'B': obj.option_b,
@@ -29,7 +31,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
-
     class Meta:
         model = Quiz
         fields = ['id', 'title', 'description', 'created_at', 'updated_at',
@@ -47,15 +48,16 @@ class QuizUpdateSerializer(serializers.ModelSerializer):
             'description': {'required': False}}
 
     def validate_title(self, value):
-        """Validiere Title"""
         if value and len(value.strip()) == 0:
             raise serializers.ValidationError("Title cannot be empty")
         return value
 
 class CreateQuizSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new Quiz only with YouTube URL validation
+    """
     url = serializers.URLField(required=True)
     def validate_url(self, value):
-        """Validiere YouTube URL"""
         if 'youtube.com' not in value and 'youtu.be' not in value:
             raise serializers.ValidationError("Must be a valid YouTube URL")
         return value
